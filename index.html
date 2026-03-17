@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Champagne & Territoire — AR Experience</title>
+
+  <!-- A-Frame + AR.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.2/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #0a0a0a;
+      color: #f5f0e8;
+      overflow-x: hidden;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(184,134,11,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(101,67,33,0.15) 0%, transparent 50%),
+        #0a0a0a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 80px,
+        rgba(184,134,11,0.03) 80px, rgba(184,134,11,0.03) 81px
+      ),
+      repeating-linear-gradient(
+        90deg, transparent, transparent 80px,
+        rgba(184,134,11,0.03) 80px, rgba(184,134,11,0.03) 81px
+      );
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: #b8860b;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: #f5f0e8;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.4s;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: #d4a017;
+    }
+
+    .hero-sub {
+      margin-top: 1.2rem;
+      font-size: 1rem;
+      color: #a09070;
+      max-width: 480px;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.6s;
+    }
+
+    .cta-group {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.8s;
+    }
+
+    .btn {
+      padding: 0.8rem 2rem;
+      border: 1px solid;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #b8860b;
+      border-color: #b8860b;
+      color: #0a0a0a;
+    }
+    .btn-primary:hover { background: #d4a017; border-color: #d4a017; }
+
+    .btn-outline {
+      background: transparent;
+      border-color: rgba(184,134,11,0.4);
+      color: #d4a017;
+    }
+    .btn-outline:hover { border-color: #b8860b; background: rgba(184,134,11,0.05); }
+
+    /* ─── HOW IT WORKS ─── */
+    #how {
+      padding: 6rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: #b8860b;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 400;
+      margin-bottom: 3rem;
+      line-height: 1.2;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2rem;
+    }
+
+    .step {
+      padding: 2rem;
+      border: 1px solid rgba(184,134,11,0.15);
+      background: rgba(184,134,11,0.03);
+      position: relative;
+      transition: border-color 0.3s;
+    }
+    .step:hover { border-color: rgba(184,134,11,0.4); }
+
+    .step-num {
+      font-size: 3rem;
+      color: rgba(184,134,11,0.2);
+      font-style: italic;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .step h3 {
+      font-size: 1rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+      color: #f5f0e8;
+    }
+
+    .step p {
+      font-size: 0.85rem;
+      color: #7a6a50;
+      line-height: 1.7;
+    }
+
+    /* ─── PRODOTTI (MARKER CARDS) ─── */
+    #prodotti {
+      padding: 4rem 2rem 6rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .prodotti-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .card {
+      border: 1px solid rgba(184,134,11,0.2);
+      background: rgba(20,15,8,0.6);
+      padding: 2rem;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #b8860b, transparent);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+    .card:hover::after { transform: scaleX(1); }
+    .card:hover { border-color: rgba(184,134,11,0.5); background: rgba(30,22,8,0.8); }
+
+    .card-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #b8860b;
+      border: 1px solid rgba(184,134,11,0.3);
+      padding: 0.25rem 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      font-weight: 400;
+      margin-bottom: 0.8rem;
+      color: #f5f0e8;
+    }
+
+    .card p {
+      font-size: 0.85rem;
+      color: #7a6a50;
+      line-height: 1.8;
+      margin-bottom: 1.2rem;
+    }
+
+    .card-data {
+      display: flex;
+      gap: 1.5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(184,134,11,0.1);
+    }
+
+    .data-item { flex: 1; }
+    .data-value {
+      display: block;
+      font-size: 1.3rem;
+      color: #d4a017;
+      font-style: italic;
+    }
+    .data-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5a4a30;
+    }
+
+    .marker-badge {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(184,134,11,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      color: #b8860b;
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── AR SECTION ─── */
+    #ar-section {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: radial-gradient(ellipse at center, rgba(184,134,11,0.08) 0%, transparent 70%);
+    }
+
+    .ar-launch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1.2rem 3rem;
+      background: linear-gradient(135deg, #b8860b, #8b6508);
+      color: #f5f0e8;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    .ar-launch-btn:hover {
+      background: linear-gradient(135deg, #d4a017, #b8860b);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(184,134,11,0.3);
+    }
+
+    .ar-note {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #5a4a30;
+      line-height: 1.7;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 3rem 2rem;
+      border-top: 1px solid rgba(184,134,11,0.1);
+      text-align: center;
+    }
+
+    .footer-logos {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .footer-logo {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5a4a30;
+    }
+    .footer-logo strong {
+      display: block;
+      font-size: 0.9rem;
+      color: #a09070;
+      margin-bottom: 0.2rem;
+    }
+
+    .footer-copy {
+      font-size: 0.7rem;
+      color: #3a2a18;
+      letter-spacing: 0.1em;
+    }
+
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .steps { grid-template-columns: 1fr; }
+      .prodotti-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section id="hero">
+  <p class="hero-label">Erasmus+ · Châlons-en-Champagne · 2026</p>
+  <h1>Champagne<br>&amp; <em>Territoire</em></h1>
+  <p class="hero-sub">
+    Un progetto franco-italiano di realtà aumentata per scoprire i prodotti tipici e l'economia del territorio della Marne.
+  </p>
+  <div class="cta-group">
+    <a href="#prodotti" class="btn btn-primary">Scopri i prodotti</a>
+    <a href="ar-camera.html" class="btn btn-outline">▶ Lancia AR</a>
+  </div>
+</section>
+
+<!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+<section id="how">
+  <p class="section-label">Come funziona</p>
+  <h2 class="section-title">Tre passi per<br>l'esperienza aumentata</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Stampa il marker</h3>
+      <p>Scarica e stampa uno dei marker QR/Hiro dalla sezione "Prodotti". Ogni prodotto ha il suo marker dedicato.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Apri la fotocamera AR</h3>
+      <p>Clicca "Lancia AR" e concedi i permessi della fotocamera. Funziona direttamente nel browser, senza app.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Punta sul marker</h3>
+      <p>Inquadra il marker stampato: apparirà il modello 3D con testo, dati economici e info sul prodotto.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PRODOTTI ═══════════════════ -->
+<section id="prodotti">
+  <p class="section-label">Prodotti tipici</p>
+  <h2 class="section-title">Il territorio in tre prodotti</h2>
+  <div class="prodotti-grid">
+
+    <!-- Champagne -->
+    <div class="card" onclick="openMarker('champagne')">
+      <span class="marker-badge">AR</span>
+      <div class="card-icon">🍾</div>
+      <span class="card-tag">Enologia · Hiro Marker</span>
+      <h3>Champagne AOC</h3>
+      <p>Il vino simbolo della Francia e dell'intera regione Grand Est. Una filiera che coinvolge oltre 16.000 viticoltori e genera un export da record.</p>
+      <div class="card-data">
+        <div class="data-item">
+          <span class="data-value">4,9 Md€</span>
+          <span class="data-label">Export annuo</span>
+        </div>
+        <div class="data-item">
+          <span class="data-value">34.000 ha</span>
+          <span class="data-label">Superficie vigneti</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grano -->
+    <div class="card" onclick="openMarker('grano')">
+      <span class="marker-badge">AR</span>
+      <div class="card-icon">🌾</div>
+      <span class="card-tag">Agricoltura · Kanji Marker</span>
+      <h3>Blé de la Champagne</h3>
+      <p>La pianura della Champagne crayeuse è tra le più fertili d'Europa. Il frumento tenero è la coltura dominante e fondamento dell'agroalimentare locale.</p>
+      <div class="card-data">
+        <div class="data-item">
+          <span class="data-value">1° posto</span>
+          <span class="data-label">In Francia per resa</span>
+        </div>
+        <div class="data-item">
+          <span class="data-value">650.000 t</span>
+          <span class="data-label">Produzione/anno</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fromage -->
+    <div class="card" onclick="openMarker('fromage')">
+      <span class="marker-badge">AR</span>
+      <div class="card-icon">🧀</div>
+      <span class="card-tag">Lattiero-caseario · Scheda informativa</span>
+      <h3>Chaource AOP</h3>
+      <p>Formaggio a pasta molle e crosta fiorita, prodotto nei dintorni di Châlons. Un'eccellenza casearia riconosciuta a livello europeo con denominazione AOP.</p>
+      <div class="card-data">
+        <div class="data-item">
+          <span class="data-value">~800 t</span>
+          <span class="data-label">Produzione/anno</span>
+        </div>
+        <div class="data-item">
+          <span class="data-value">dal XIV sec.</span>
+          <span class="data-label">Tradizione storica</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════ AR CALL TO ACTION ═══════════════════ -->
+<section id="ar-section">
+  <p class="section-label">Realtà Aumentata</p>
+  <h2 class="section-title" style="margin-bottom:1.5rem;">Pronto a vedere<br>il territorio in 3D?</h2>
+  <a href="ar-camera.html" class="ar-launch-btn">
+    <span>📷</span> Apri la camera AR
+  </a>
+  <p class="ar-note">
+    Richiede fotocamera e connessione internet · Compatibile con Chrome e Safari<br>
+    Stampa prima i marker dalla sezione prodotti
+  </p>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="footer-logos">
+    <div class="footer-logo">
+      <strong>Scuola Italiana</strong>
+      IIS ITG - ITI - ITE di Vibo Valentia
+    </div>
+    <div class="footer-logo" style="color:#b8860b; font-size:1.2rem;">✦</div>
+    <div class="footer-logo">
+      <strong>École Française</strong>
+      Châlons-en-Champagne
+    </div>
+  </div>
+  <p class="footer-copy">Progetto Erasmus+ · Realizzato da studenti italiani e francesi · 2026</p>
+</footer>
+
+<!-- ═══════════════════ PAGINE MARKER NASCOSTE (stampabili) ═══════════════════ -->
+<!--
+  Ogni pagina marker è un documento HTML completo incorporato in un <template>.
+  openMarker(key) ne apre il contenuto in una nuova finestra e lancia window.print().
+  Funziona su tutti i browser (Chrome, Safari, Firefox) incluso mobile iOS/Android.
+  Nessun blob, nessun download, nessuna dipendenza da file esterni.
+-->
+
+<template id="tpl-champagne"><!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<title>Marker HIRO — Champagne AOC</title>
+<style>
+  @page{size:A4;margin:0} *{margin:0;padding:0;box-sizing:border-box}
+  body{width:210mm;height:297mm;display:flex;flex-direction:column;align-items:center;
+       justify-content:center;background:white;font-family:Georgia,serif;gap:8mm;padding:10mm}
+  h1{font-size:20pt;color:#1a4010;letter-spacing:.08em;text-align:center}
+  .sub{font-size:10pt;color:#666;text-align:center}
+  .marker-wrap{border:5mm solid black;padding:4mm;background:white;display:inline-block}
+  .badge{background:#1a4010;color:white;font-size:8pt;letter-spacing:.2em;padding:2mm 7mm;text-transform:uppercase}
+  .info{font-size:9pt;color:#444;text-align:center;line-height:1.9;border-top:1px solid #ccc;padding-top:5mm;max-width:150mm}
+  .info strong{color:#1a4010}
+  @media print{.no-print{display:none}}
+</style></head><body>
+<h1>🍾 CHAMPAGNE AOC</h1>
+<div class="sub">Marker AR — Inquadra con la fotocamera</div>
+<div class="marker-wrap">
+  <svg width="110mm" height="110mm" viewBox="0 0 436 436" xmlns="http://www.w3.org/2000/svg">
+    <rect width="436" height="436" fill="white"/>
+    <rect x="36" y="36" width="26" height="26" fill="black"/>
+    <rect x="62" y="36" width="26" height="26" fill="black"/>
+    <rect x="88" y="36" width="26" height="26" fill="black"/>
+    <rect x="114" y="36" width="26" height="26" fill="black"/>
+    <rect x="140" y="36" width="26" height="26" fill="black"/>
+    <rect x="166" y="36" width="26" height="26" fill="black"/>
+    <rect x="192" y="36" width="26" height="26" fill="black"/>
+    <rect x="218" y="36" width="26" height="26" fill="black"/>
+    <rect x="244" y="36" width="26" height="26" fill="black"/>
+    <rect x="270" y="36" width="26" height="26" fill="black"/>
+    <rect x="296" y="36" width="26" height="26" fill="black"/>
+    <rect x="322" y="36" width="26" height="26" fill="black"/>
+    <rect x="348" y="36" width="26" height="26" fill="black"/>
+    <rect x="374" y="36" width="26" height="26" fill="black"/>
+    <rect x="36" y="62" width="26" height="26" fill="black"/>
+    <rect x="374" y="62" width="26" height="26" fill="black"/>
+    <rect x="36" y="88" width="26" height="26" fill="black"/>
+    <rect x="88" y="88" width="26" height="26" fill="black"/>
+    <rect x="114" y="88" width="26" height="26" fill="black"/>
+    <rect x="192" y="88" width="26" height="26" fill="black"/>
+    <rect x="218" y="88" width="26" height="26" fill="black"/>
+    <rect x="296" y="88" width="26" height="26" fill="black"/>
+    <rect x="322" y="88" width="26" height="26" fill="black"/>
+    <rect x="374" y="88" width="26" height="26" fill="black"/>
+    <rect x="36" y="114" width="26" height="26" fill="black"/>
+    <rect x="88" y="114" width="26" height="26" fill="black"/>
+    <rect x="114" y="114" width="26" height="26" fill="black"/>
+    <rect x="192" y="114" width="26" height="26" fill="black"/>
+    <rect x="218" y="114" width="26" height="26" fill="black"/>
+    <rect x="296" y="114" width="26" height="26" fill="black"/>
+    <rect x="322" y="114" width="26" height="26" fill="black"/>
+    <rect x="374" y="114" width="26" height="26" fill="black"/>
+    <rect x="36" y="140" width="26" height="26" fill="black"/>
+    <rect x="140" y="140" width="26" height="26" fill="black"/>
+    <rect x="166" y="140" width="26" height="26" fill="black"/>
+    <rect x="244" y="140" width="26" height="26" fill="black"/>
+    <rect x="270" y="140" width="26" height="26" fill="black"/>
+    <rect x="374" y="140" width="26" height="26" fill="black"/>
+    <rect x="36" y="166" width="26" height="26" fill="black"/>
+    <rect x="140" y="166" width="26" height="26" fill="black"/>
+    <rect x="166" y="166" width="26" height="26" fill="black"/>
+    <rect x="244" y="166" width="26" height="26" fill="black"/>
+    <rect x="270" y="166" width="26" height="26" fill="black"/>
+    <rect x="374" y="166" width="26" height="26" fill="black"/>
+    <rect x="36" y="192" width="26" height="26" fill="black"/>
+    <rect x="88" y="192" width="26" height="26" fill="black"/>
+    <rect x="114" y="192" width="26" height="26" fill="black"/>
+    <rect x="192" y="192" width="26" height="26" fill="black"/>
+    <rect x="218" y="192" width="26" height="26" fill="black"/>
+    <rect x="296" y="192" width="26" height="26" fill="black"/>
+    <rect x="322" y="192" width="26" height="26" fill="black"/>
+    <rect x="374" y="192" width="26" height="26" fill="black"/>
+    <rect x="36" y="218" width="26" height="26" fill="black"/>
+    <rect x="88" y="218" width="26" height="26" fill="black"/>
+    <rect x="114" y="218" width="26" height="26" fill="black"/>
+    <rect x="192" y="218" width="26" height="26" fill="black"/>
+    <rect x="218" y="218" width="26" height="26" fill="black"/>
+    <rect x="296" y="218" width="26" height="26" fill="black"/>
+    <rect x="322" y="218" width="26" height="26" fill="black"/>
+    <rect x="374" y="218" width="26" height="26" fill="black"/>
+    <rect x="36" y="244" width="26" height="26" fill="black"/>
+    <rect x="140" y="244" width="26" height="26" fill="black"/>
+    <rect x="166" y="244" width="26" height="26" fill="black"/>
+    <rect x="244" y="244" width="26" height="26" fill="black"/>
+    <rect x="270" y="244" width="26" height="26" fill="black"/>
+    <rect x="374" y="244" width="26" height="26" fill="black"/>
+    <rect x="36" y="270" width="26" height="26" fill="black"/>
+    <rect x="140" y="270" width="26" height="26" fill="black"/>
+    <rect x="166" y="270" width="26" height="26" fill="black"/>
+    <rect x="244" y="270" width="26" height="26" fill="black"/>
+    <rect x="270" y="270" width="26" height="26" fill="black"/>
+    <rect x="374" y="270" width="26" height="26" fill="black"/>
+    <rect x="36" y="296" width="26" height="26" fill="black"/>
+    <rect x="88" y="296" width="26" height="26" fill="black"/>
+    <rect x="114" y="296" width="26" height="26" fill="black"/>
+    <rect x="192" y="296" width="26" height="26" fill="black"/>
+    <rect x="218" y="296" width="26" height="26" fill="black"/>
+    <rect x="296" y="296" width="26" height="26" fill="black"/>
+    <rect x="322" y="296" width="26" height="26" fill="black"/>
+    <rect x="374" y="296" width="26" height="26" fill="black"/>
+    <rect x="36" y="322" width="26" height="26" fill="black"/>
+    <rect x="88" y="322" width="26" height="26" fill="black"/>
+    <rect x="114" y="322" width="26" height="26" fill="black"/>
+    <rect x="192" y="322" width="26" height="26" fill="black"/>
+    <rect x="218" y="322" width="26" height="26" fill="black"/>
+    <rect x="296" y="322" width="26" height="26" fill="black"/>
+    <rect x="322" y="322" width="26" height="26" fill="black"/>
+    <rect x="374" y="322" width="26" height="26" fill="black"/>
+    <rect x="36" y="348" width="26" height="26" fill="black"/>
+    <rect x="374" y="348" width="26" height="26" fill="black"/>
+    <rect x="36" y="374" width="26" height="26" fill="black"/>
+    <rect x="62" y="374" width="26" height="26" fill="black"/>
+    <rect x="88" y="374" width="26" height="26" fill="black"/>
+    <rect x="114" y="374" width="26" height="26" fill="black"/>
+    <rect x="140" y="374" width="26" height="26" fill="black"/>
+    <rect x="166" y="374" width="26" height="26" fill="black"/>
+    <rect x="192" y="374" width="26" height="26" fill="black"/>
+    <rect x="218" y="374" width="26" height="26" fill="black"/>
+    <rect x="244" y="374" width="26" height="26" fill="black"/>
+    <rect x="270" y="374" width="26" height="26" fill="black"/>
+    <rect x="296" y="374" width="26" height="26" fill="black"/>
+    <rect x="322" y="374" width="26" height="26" fill="black"/>
+    <rect x="348" y="374" width="26" height="26" fill="black"/>
+    <rect x="374" y="374" width="26" height="26" fill="black"/>
+  </svg>
+</div>
+<div class="badge">MARKER 1 — HIRO (AR.js preset)</div>
+<div class="info">
+  <strong>Come usare:</strong><br>
+  1. Stampa in bianco e nero su carta A4 (non plastificare)<br>
+  2. Apri la Camera AR · tieni il foglio su piano orizzontale<br>
+  3. Punta la fotocamera a 20–40 cm · buona illuminazione
+</div>
+<button class="no-print" onclick="window.print()" style="padding:7px 22px;background:#1a4010;color:white;border:none;font-size:10pt;cursor:pointer;font-family:Georgia,serif;margin-top:3mm">🖨 Stampa</button>
+</body></html></template>
+
+<template id="tpl-grano"><!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<title>Marker KANJI — Blé de Champagne</title>
+<style>
+  @page{size:A4;margin:0} *{margin:0;padding:0;box-sizing:border-box}
+  body{width:210mm;height:297mm;display:flex;flex-direction:column;align-items:center;
+       justify-content:center;background:white;font-family:Georgia,serif;gap:8mm;padding:10mm}
+  h1{font-size:20pt;color:#5a7a10;letter-spacing:.08em;text-align:center}
+  .sub{font-size:10pt;color:#666;text-align:center}
+  .marker-wrap{border:5mm solid black;padding:4mm;background:white;display:inline-block}
+  .badge{background:#5a7a10;color:white;font-size:8pt;letter-spacing:.2em;padding:2mm 7mm;text-transform:uppercase}
+  .info{font-size:9pt;color:#444;text-align:center;line-height:1.9;border-top:1px solid #ccc;padding-top:5mm;max-width:150mm}
+  .info strong{color:#5a7a10}
+  @media print{.no-print{display:none}}
+</style></head><body>
+<h1>🌾 BLÉ DE CHAMPAGNE</h1>
+<div class="sub">Marker AR — Inquadra con la fotocamera</div>
+<div class="marker-wrap">
+  <svg width="110mm" height="110mm" viewBox="0 0 436 436" xmlns="http://www.w3.org/2000/svg">
+    <rect width="436" height="436" fill="white"/>
+    <rect x="36" y="36" width="26" height="26" fill="black"/>
+    <rect x="62" y="36" width="26" height="26" fill="black"/>
+    <rect x="88" y="36" width="26" height="26" fill="black"/>
+    <rect x="114" y="36" width="26" height="26" fill="black"/>
+    <rect x="140" y="36" width="26" height="26" fill="black"/>
+    <rect x="166" y="36" width="26" height="26" fill="black"/>
+    <rect x="192" y="36" width="26" height="26" fill="black"/>
+    <rect x="218" y="36" width="26" height="26" fill="black"/>
+    <rect x="244" y="36" width="26" height="26" fill="black"/>
+    <rect x="270" y="36" width="26" height="26" fill="black"/>
+    <rect x="296" y="36" width="26" height="26" fill="black"/>
+    <rect x="322" y="36" width="26" height="26" fill="black"/>
+    <rect x="348" y="36" width="26" height="26" fill="black"/>
+    <rect x="374" y="36" width="26" height="26" fill="black"/>
+    <rect x="36" y="62" width="26" height="26" fill="black"/>
+    <rect x="374" y="62" width="26" height="26" fill="black"/>
+    <rect x="36" y="88" width="26" height="26" fill="black"/>
+    <rect x="114" y="88" width="26" height="26" fill="black"/>
+    <rect x="140" y="88" width="26" height="26" fill="black"/>
+    <rect x="166" y="88" width="26" height="26" fill="black"/>
+    <rect x="192" y="88" width="26" height="26" fill="black"/>
+    <rect x="218" y="88" width="26" height="26" fill="black"/>
+    <rect x="244" y="88" width="26" height="26" fill="black"/>
+    <rect x="270" y="88" width="26" height="26" fill="black"/>
+    <rect x="296" y="88" width="26" height="26" fill="black"/>
+    <rect x="374" y="88" width="26" height="26" fill="black"/>
+    <rect x="36" y="114" width="26" height="26" fill="black"/>
+    <rect x="192" y="114" width="26" height="26" fill="black"/>
+    <rect x="218" y="114" width="26" height="26" fill="black"/>
+    <rect x="374" y="114" width="26" height="26" fill="black"/>
+    <rect x="36" y="140" width="26" height="26" fill="black"/>
+    <rect x="166" y="140" width="26" height="26" fill="black"/>
+    <rect x="192" y="140" width="26" height="26" fill="black"/>
+    <rect x="218" y="140" width="26" height="26" fill="black"/>
+    <rect x="244" y="140" width="26" height="26" fill="black"/>
+    <rect x="374" y="140" width="26" height="26" fill="black"/>
+    <rect x="36" y="166" width="26" height="26" fill="black"/>
+    <rect x="114" y="166" width="26" height="26" fill="black"/>
+    <rect x="140" y="166" width="26" height="26" fill="black"/>
+    <rect x="192" y="166" width="26" height="26" fill="black"/>
+    <rect x="218" y="166" width="26" height="26" fill="black"/>
+    <rect x="270" y="166" width="26" height="26" fill="black"/>
+    <rect x="296" y="166" width="26" height="26" fill="black"/>
+    <rect x="374" y="166" width="26" height="26" fill="black"/>
+    <rect x="36" y="192" width="26" height="26" fill="black"/>
+    <rect x="88" y="192" width="26" height="26" fill="black"/>
+    <rect x="192" y="192" width="26" height="26" fill="black"/>
+    <rect x="218" y="192" width="26" height="26" fill="black"/>
+    <rect x="322" y="192" width="26" height="26" fill="black"/>
+    <rect x="374" y="192" width="26" height="26" fill="black"/>
+    <rect x="36" y="218" width="26" height="26" fill="black"/>
+    <rect x="192" y="218" width="26" height="26" fill="black"/>
+    <rect x="218" y="218" width="26" height="26" fill="black"/>
+    <rect x="374" y="218" width="26" height="26" fill="black"/>
+    <rect x="36" y="244" width="26" height="26" fill="black"/>
+    <rect x="140" y="244" width="26" height="26" fill="black"/>
+    <rect x="166" y="244" width="26" height="26" fill="black"/>
+    <rect x="192" y="244" width="26" height="26" fill="black"/>
+    <rect x="218" y="244" width="26" height="26" fill="black"/>
+    <rect x="244" y="244" width="26" height="26" fill="black"/>
+    <rect x="270" y="244" width="26" height="26" fill="black"/>
+    <rect x="374" y="244" width="26" height="26" fill="black"/>
+    <rect x="36" y="270" width="26" height="26" fill="black"/>
+    <rect x="192" y="270" width="26" height="26" fill="black"/>
+    <rect x="218" y="270" width="26" height="26" fill="black"/>
+    <rect x="374" y="270" width="26" height="26" fill="black"/>
+    <rect x="36" y="296" width="26" height="26" fill="black"/>
+    <rect x="192" y="296" width="26" height="26" fill="black"/>
+    <rect x="218" y="296" width="26" height="26" fill="black"/>
+    <rect x="374" y="296" width="26" height="26" fill="black"/>
+    <rect x="36" y="322" width="26" height="26" fill="black"/>
+    <rect x="140" y="322" width="26" height="26" fill="black"/>
+    <rect x="166" y="322" width="26" height="26" fill="black"/>
+    <rect x="192" y="322" width="26" height="26" fill="black"/>
+    <rect x="218" y="322" width="26" height="26" fill="black"/>
+    <rect x="244" y="322" width="26" height="26" fill="black"/>
+    <rect x="270" y="322" width="26" height="26" fill="black"/>
+    <rect x="374" y="322" width="26" height="26" fill="black"/>
+    <rect x="36" y="348" width="26" height="26" fill="black"/>
+    <rect x="374" y="348" width="26" height="26" fill="black"/>
+    <rect x="36" y="374" width="26" height="26" fill="black"/>
+    <rect x="62" y="374" width="26" height="26" fill="black"/>
+    <rect x="88" y="374" width="26" height="26" fill="black"/>
+    <rect x="114" y="374" width="26" height="26" fill="black"/>
+    <rect x="140" y="374" width="26" height="26" fill="black"/>
+    <rect x="166" y="374" width="26" height="26" fill="black"/>
+    <rect x="192" y="374" width="26" height="26" fill="black"/>
+    <rect x="218" y="374" width="26" height="26" fill="black"/>
+    <rect x="244" y="374" width="26" height="26" fill="black"/>
+    <rect x="270" y="374" width="26" height="26" fill="black"/>
+    <rect x="296" y="374" width="26" height="26" fill="black"/>
+    <rect x="322" y="374" width="26" height="26" fill="black"/>
+    <rect x="348" y="374" width="26" height="26" fill="black"/>
+    <rect x="374" y="374" width="26" height="26" fill="black"/>
+  </svg>
+</div>
+<div class="badge">MARKER 2 — KANJI (AR.js preset)</div>
+<div class="info">
+  <strong>Come usare:</strong><br>
+  1. Stampa in bianco e nero su carta A4 (non plastificare)<br>
+  2. Apri la Camera AR · tieni il foglio su piano orizzontale<br>
+  3. Punta la fotocamera a 20–40 cm · buona illuminazione
+</div>
+<button class="no-print" onclick="window.print()" style="padding:7px 22px;background:#5a7a10;color:white;border:none;font-size:10pt;cursor:pointer;font-family:Georgia,serif;margin-top:3mm">🖨 Stampa</button>
+</body></html></template>
+
+<template id="tpl-fromage"><!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<title>Chaource AOP — Scheda prodotto</title>
+<style>
+  @page{size:A4;margin:20mm}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Georgia,serif;background:white;color:#333;padding:20mm}
+  h1{font-size:22pt;color:#8b5e00;margin-bottom:3mm}
+  .sub{font-size:10pt;color:#888;margin-bottom:8mm;letter-spacing:.1em;text-transform:uppercase}
+  .badge{display:inline-block;background:#8b5e00;color:white;font-size:8pt;letter-spacing:.2em;padding:1.5mm 5mm;text-transform:uppercase;margin-bottom:8mm}
+  .divider{border:none;border-top:2px solid #c8a200;margin:6mm 0}
+  h2{font-size:13pt;color:#8b5e00;margin-bottom:3mm;margin-top:6mm}
+  p{font-size:10pt;line-height:1.8;margin-bottom:3mm}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin:4mm 0}
+  .stat{border:1px solid #e0c890;padding:3mm 5mm}
+  .stat-val{font-size:14pt;color:#8b5e00;font-style:italic}
+  .stat-lbl{font-size:7.5pt;color:#888;letter-spacing:.15em;text-transform:uppercase}
+  .footer{margin-top:10mm;font-size:8pt;color:#aaa;text-align:center;border-top:1px solid #ddd;padding-top:4mm}
+  @media print{.no-print{display:none}}
+</style></head><body>
+<div class="badge">AOP — Appellation d'Origine Protégée</div>
+<h1>🧀 Chaource AOP</h1>
+<div class="sub">Formaggio a pasta molle — Châlons-en-Champagne · Francia</div>
+<hr class="divider"/>
+<h2>Descrizione</h2>
+<p>Il Chaource è un formaggio a pasta molle e crosta fiorita prodotto nei dintorni di Châlons-en-Champagne e Troyes. La denominazione AOP ne garantisce l'autenticità e l'origine geografica a livello europeo. Deve il suo nome al comune di Chaource, nell'Aube.</p>
+<h2>Caratteristiche</h2>
+<p>Forma cilindrica di 10–11 cm di diametro. Pasta bianca, cremosa e fondente con crosta bianca coperta da Penicillium candidum. Sapore delicato e leggermente acidulo che si intensifica con la stagionatura.</p>
+<div class="stat-grid">
+  <div class="stat"><div class="stat-val">~800 t</div><div class="stat-lbl">Produzione/anno</div></div>
+  <div class="stat"><div class="stat-val">AOP</div><div class="stat-lbl">Certificazione EU</div></div>
+  <div class="stat"><div class="stat-val">XIV sec.</div><div class="stat-lbl">Prima citazione storica</div></div>
+  <div class="stat"><div class="stat-val">2–8 sett.</div><div class="stat-lbl">Stagionatura</div></div>
+</div>
+<h2>Filiera</h2>
+<p>La raccolta del latte, la lavorazione e la stagionatura devono avvenire nell'area geografica delimitata dal disciplinare europeo. I produttori certificati sono una dozzina tra affineurs e caseifici artigianali.</p>
+<div class="footer">Progetto Erasmus+ · IIS ITG - ITI - ITE di Vibo Valentia · Châlons-en-Champagne 2026</div>
+<button class="no-print" onclick="window.print()" style="margin-top:8mm;padding:8px 24px;background:#8b5e00;color:white;border:none;font-size:11pt;cursor:pointer;font-family:Georgia,serif">🖨 Stampa scheda</button>
+</body></html></template>
+
+<script>
+  // Apre il marker in una nuova finestra e lancia la stampa
+  // Tecnica: innerHTML del <template> scritto in document.write() sulla nuova finestra
+  // Compatibile con Chrome, Firefox, Safari desktop e mobile (no blob, no download)
+  function openMarker(key) {
+    const tplId = { champagne:'tpl-champagne', grano:'tpl-grano', fromage:'tpl-fromage' }[key];
+    const html = document.getElementById(tplId).innerHTML;
+    const w = window.open('', '_blank');
+    if (!w) { alert('Abilita i popup per questo sito per aprire il marker.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
